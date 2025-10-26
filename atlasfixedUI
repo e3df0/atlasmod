@@ -166,6 +166,7 @@ function library.new(library_title, cfg_location)
     end
 
     uis.InputBegan:Connect(function(key)
+		print("Toggling: " .. key.KeyCode)
         if key.KeyCode ~= Enum.KeyCode.RightShift then return end
 
 		ScreenGui.Enabled = not ScreenGui.Enabled
