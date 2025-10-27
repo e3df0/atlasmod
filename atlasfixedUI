@@ -1108,6 +1108,8 @@ end
 					    local UIPadding = library:create("UIPadding", {
 					        PaddingLeft = UDim.new(0, 9),
 					    }, Label)
+
+						element.Label = Label
                     elseif type == "Dropdown" then
                         Border.Size = Border.Size + UDim2.new(0, 0, 0, 45)
 
