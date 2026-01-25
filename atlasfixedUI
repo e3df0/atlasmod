@@ -166,9 +166,9 @@ function library.new(library_title, cfg_location)
     end
 
     uis.InputBegan:Connect(function(key)
-		print("Toggling: " .. tostring(key.KeyCode))
+		("Toggling: " .. tostring(key.KeyCode))
         if key.KeyCode ~= Enum.KeyCode.RightShift then return end
-		print("Didnt return")
+		--("Didnt return")
 
 		ScreenGui.Enabled = not ScreenGui.Enabled
         menu.open = ScreenGui.Enabled
@@ -976,7 +976,7 @@ end
                                     local transparency = x/180
                                     extra_value.Transparency = transparency
 
-                                    print(transparency)
+                                    --(transparency)
 
                                     color_callback(extra_value)
                                     menu.values[tab.tab_num][section_name][sector_name][extra_flag] = extra_value
