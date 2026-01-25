@@ -166,7 +166,7 @@ function library.new(library_title, cfg_location)
     end
 
     uis.InputBegan:Connect(function(key)
-		("Toggling: " .. tostring(key.KeyCode))
+		--("Toggling: " .. tostring(key.KeyCode))
         if key.KeyCode ~= Enum.KeyCode.RightShift then return end
 		--("Didnt return")
 
