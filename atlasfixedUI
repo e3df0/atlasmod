@@ -2254,7 +2254,7 @@ local display_entries = {}
         library:create("Frame", {
             BackgroundColor3 = Color3.fromRGB(84, 101, 255),
             BorderSizePixel  = 0,
-            Size             = Size = UDim2.new(0, 6, 1, 0),
+            Size = UDim2.new(0, 6, 1, 0),
         }, Row)
 
         local Label = library:create("TextLabel", {
