@@ -2201,11 +2201,15 @@ function library.new(library_title, cfg_location)
         AnchorPoint            = Vector2.new(1, 0),
         Position               = UDim2.new(1, -7.5, 0, 7.5),
         Size                   = UDim2.new(0, 275, 1, 0),
+        ClipsDescendants       = false,
     }, DisplayGui)
 
     library:create("UIListLayout", {
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding   = UDim.new(0, 4),
+        SortOrder           = Enum.SortOrder.LayoutOrder,
+        Padding             = UDim.new(0, 4),
+        HorizontalAlignment = Enum.HorizontalAlignment.Right,
+        VerticalAlignment   = Enum.VerticalAlignment.Top,
+        FillDirection       = Enum.FillDirection.Vertical,
     }, DisplayContainer)
 
     local LogoFrame = library:create("Frame", {
@@ -2281,6 +2285,62 @@ function library.new(library_title, cfg_location)
         end
     end
 
+    function menu:display_set_logo(visible)
+        LogoFrame.Visible = visible
+    end
+
+    local logo_anim_connection = nil
+
+local logo_anim_connection = nil
+
+function menu:display_set_logo_anim(mode)
+    if logo_anim_connection then
+        logo_anim_connection:Disconnect()
+        logo_anim_connection = nil
+    end
+
+    local LogoIcon = LogoFrame:FindFirstChild("LogoIcon")
+    if not LogoIcon then return end
+
+    LogoIcon.Rotation = 0
+    LogoIcon.Position = UDim2.new(0, 10, 0.5, 0)
+    LogoIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    local bar = LogoFrame:FindFirstChildWhichIsA("Frame")
+    if bar then bar.BackgroundColor3 = Color3.fromRGB(84, 101, 255) end
+
+    if mode == "None" then return end
+
+    local t = 0
+    local bounceVel = 0
+    local bounceAngle = 0
+    local bounceDir = 1
+    local MAX_ANGLE = 25
+
+    logo_anim_connection = rs.RenderStepped:Connect(function(dt)
+        t = t + dt
+        if mode == "Spin" then
+            LogoIcon.Rotation = (t * 300) % 360
+        elseif mode == "Bounce Spin" then
+            bounceVel = bounceVel + bounceDir * 180 * dt
+            bounceAngle = bounceAngle + bounceVel * dt
+            if bounceAngle >= MAX_ANGLE then
+                bounceAngle = MAX_ANGLE
+                bounceVel = -math.abs(bounceVel) * 1.15
+                MAX_ANGLE = math.min(MAX_ANGLE + 8, 360)
+            elseif bounceAngle <= -MAX_ANGLE then
+                bounceAngle = -MAX_ANGLE
+                bounceVel = math.abs(bounceVel) * 1.15
+                MAX_ANGLE = math.min(MAX_ANGLE + 8, 360)
+            end
+            LogoIcon.Rotation = bounceAngle
+        elseif mode == "Bounce" then
+            LogoIcon.Position = UDim2.new(0, 10, 0.5, -math.abs(math.sin(t * 4)) * 5)
+        elseif mode == "Rainbow" then
+            LogoIcon.ImageColor3 = Color3.fromHSV((t * 0.2) % 1, 1, 1)
+        end
+    end)
+end
+
     function menu:display_add(id, name, value)
         if display_entries[id] then return end
 
@@ -2314,7 +2374,6 @@ function library.new(library_title, cfg_location)
         })
 
         display_entries[id] = { Row = Row, Label = Label, Name = name }
-        LogoFrame.Visible = true
         refresh_display_order()
     end
 
@@ -2336,9 +2395,7 @@ function library.new(library_title, cfg_location)
         end)
 
         display_entries[id] = nil
-        if not next(display_entries) then
-            LogoFrame.Visible = false
-        end
+
         refresh_display_order()
     end
 
