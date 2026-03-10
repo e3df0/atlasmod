@@ -2074,6 +2074,147 @@ end
         return tab
     end
 
+local notif_queue   = {}
+    local NOTIF_W       = 220
+    local NOTIF_H       = 52
+    local NOTIF_GAP     = 6
+    local SLIDE_OFFSET  = NOTIF_W + 24
+    local PAD_RIGHT     = 16
+    local PAD_BOT       = 16
+
+    local TYPE_COLORS = {
+        info    = Color3.fromRGB(84,  101, 255),
+        success = Color3.fromRGB(60,  210, 120),
+        warning = Color3.fromRGB(255, 180, 40),
+        error   = Color3.fromRGB(220, 60,  60),
+    }
+
+    local NotifGui = library:create("ScreenGui", {
+        Name             = "NotifGui",
+        ResetOnSpawn     = false,
+        ZIndexBehavior   = Enum.ZIndexBehavior.Global,
+        IgnoreGuiInset   = true,
+    })
+    if syn then syn.protect_gui(NotifGui) end
+    NotifGui.Parent = cloneref(game:GetService("CoreGui"))
+
+    local NotifAnchor = library:create("Frame", {
+        Name                   = "NotifAnchor",
+        BackgroundTransparency = 1,
+        AnchorPoint            = Vector2.new(1, 1),
+        Position               = UDim2.new(1, -PAD_RIGHT, 1, -PAD_BOT),
+        Size                   = UDim2.new(0, NOTIF_W, 1, 0),
+        ClipsDescendants       = false,
+        ZIndex                 = 100,
+    }, NotifGui)
+
+    library:create("UIListLayout", {
+        HorizontalAlignment = Enum.HorizontalAlignment.Right,
+        VerticalAlignment   = Enum.VerticalAlignment.Bottom,
+        FillDirection       = Enum.FillDirection.Vertical,
+        SortOrder           = Enum.SortOrder.LayoutOrder,
+        Padding             = UDim.new(0, NOTIF_GAP),
+    }, NotifAnchor)
+
+    function menu:notify(title, message, duration, notif_type)
+        title      = title      or "Notification"
+        message    = message    or ""
+        duration   = duration   or 4
+        notif_type = notif_type or "info"
+
+        local accentColor = TYPE_COLORS[notif_type] or TYPE_COLORS.info
+
+        local Card = library:create("Frame", {
+            Name             = "NotifCard",
+            BackgroundColor3 = Color3.fromRGB(5, 5, 5),
+            BorderColor3     = Color3.fromRGB(30, 30, 30),
+            Size             = UDim2.new(0, NOTIF_W, 0, NOTIF_H),
+            Position         = UDim2.new(0, SLIDE_OFFSET, 0, 0),
+            ZIndex           = 100,
+        }, NotifAnchor)
+
+        local Inner = library:create("Frame", {
+            BackgroundColor3 = Color3.fromRGB(10, 10, 10),
+            BorderSizePixel  = 0,
+            Position         = UDim2.new(0, 1, 0, 1),
+            Size             = UDim2.new(1, -2, 1, -2),
+            ZIndex           = 100,
+        }, Card)
+
+        library:create("Frame", {
+            BackgroundColor3 = accentColor,
+            BorderSizePixel  = 0,
+            Position         = UDim2.new(0, 0, 0, 0),
+            Size             = UDim2.new(0, 2, 1, 0),
+            ZIndex           = 101,
+        }, Inner)
+
+        local ProgressBg = library:create("Frame", {
+            BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+            BorderSizePixel  = 0,
+            Position         = UDim2.new(0, 2, 1, -2),
+            Size             = UDim2.new(1, -2, 0, 2),
+            ZIndex           = 101,
+        }, Inner)
+
+        local ProgressBar = library:create("Frame", {
+            BackgroundColor3 = accentColor,
+            BorderSizePixel  = 0,
+            Position         = UDim2.new(0, 0, 0, 0),
+            Size             = UDim2.new(1, 0, 1, 0),
+            ZIndex           = 102,
+        }, ProgressBg)
+
+        library:create("TextLabel", {
+            BackgroundTransparency = 1,
+            Position         = UDim2.new(0, 10, 0, 7),
+            Size             = UDim2.new(1, -18, 0, 14),
+            Font             = Enum.Font.Ubuntu,
+            Text             = title,
+            TextColor3       = Color3.fromRGB(255, 255, 255),
+            TextSize         = 13,
+            TextXAlignment   = Enum.TextXAlignment.Left,
+            TextTruncate     = Enum.TextTruncate.AtEnd,
+            ZIndex           = 102,
+        }, Inner)
+
+        library:create("TextLabel", {
+            BackgroundTransparency = 1,
+            Position         = UDim2.new(0, 10, 0, 24),
+            Size             = UDim2.new(1, -18, 0, 22),
+            Font             = Enum.Font.Ubuntu,
+            Text             = message,
+            TextColor3       = Color3.fromRGB(150, 150, 150),
+            TextSize         = 12,
+            TextXAlignment   = Enum.TextXAlignment.Left,
+            TextWrapped      = true,
+            ZIndex           = 102,
+        }, Inner)
+
+        table.insert(notif_queue, Card)
+
+        library:tween(Card,
+            TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            { Position = UDim2.new(0, 0, 0, 0) }
+        )
+
+        library:tween(ProgressBar,
+            TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+            { Size = UDim2.new(0, 0, 1, 0) }
+        )
+
+        task.delay(duration, function()
+            library:tween(Card,
+                TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+                { Position = UDim2.new(0, SLIDE_OFFSET, 0, 0) }
+            )
+            task.wait(0.2)
+            local idx = table.find(notif_queue, Card)
+            if idx then table.remove(notif_queue, idx) end
+            Card:Destroy()
+        end)
+    end
+
     return menu
 end
 
