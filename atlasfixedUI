@@ -2255,7 +2255,7 @@ local display_entries = {}
         }, Row)
 
         local Label = library:create("TextLabel", {
-            BackgroundTransparency = 0,
+            BackgroundTransparency = 1,
             Position    = UDim2.new(0, 6, 0, 0),
             Size        = UDim2.new(1, -6, 1, 0),
             Font        = Enum.Font.Ubuntu,
