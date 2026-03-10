@@ -161,8 +161,108 @@ function library.new(library_title, cfg_location)
     function menu.IsOpen()
         return menu.open
     end
-    function menu.SetOpen(State)
+    local function set_open(State)
         ScreenGui.Enabled = State
+        menu.open = State
+
+        if State then
+            task.spawn(function()
+                while ScreenGui.Enabled do
+                    uis.MouseIconEnabled = true
+                    rs.RenderStepped:Wait()
+                end
+            end)
+        end
+    end
+
+    function menu.SetOpen(State)
+        set_open(State)
+    end
+
+    function menu:EnableMobileToggle(params)
+        params = params or {}
+        if menu._mobile_toggle and menu._mobile_toggle.Gui then
+            if menu._mobile_toggle.Gui.Parent == nil then
+                menu._mobile_toggle.Gui.Parent = cloneref(game:GetService("CoreGui"))
+            end
+            menu._mobile_toggle.Button.Visible = true
+            return menu._mobile_toggle.Button
+        end
+
+        local icon = params.icon or params.Icon or params.image or params.Image
+        local size = params.size or params.Size or 54
+        local pad = params.padding or params.Padding or 16
+        local outline = params.outlineColor or params.OutlineColor or Color3.fromRGB(78, 93, 234)
+        local bg = params.backgroundColor or params.BackgroundColor or Color3.fromRGB(15, 15, 15)
+
+        local MobileGui = library:create("ScreenGui", {
+            Name = "MobileToggleGui",
+            ResetOnSpawn = false,
+            ZIndexBehavior = Enum.ZIndexBehavior.Global,
+            IgnoreGuiInset = true,
+        })
+
+        if syn then
+            syn.protect_gui(MobileGui)
+        end
+
+        MobileGui.Parent = cloneref(game:GetService("CoreGui"))
+
+        local Button = library:create("ImageButton", {
+            Name = "MobileToggle",
+            AnchorPoint = Vector2.new(1, 1),
+            BackgroundColor3 = bg,
+            AutoButtonColor = false,
+            BorderSizePixel = 0,
+            Position = UDim2.new(1, -pad, 1, -pad),
+            Size = UDim2.new(0, size, 0, size),
+            Image = "",
+            ZIndex = 9999,
+        }, MobileGui)
+
+        library:create("UICorner", {
+            CornerRadius = UDim.new(1, 0),
+        }, Button)
+
+        library:create("UIStroke", {
+            Color = outline,
+            Thickness = 2,
+            Transparency = 0,
+        }, Button)
+
+        local Icon = library:create("ImageLabel", {
+            Name = "Icon",
+            BackgroundTransparency = 1,
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            Size = UDim2.new(0.62, 0, 0.62, 0),
+            Image = icon or "",
+            ImageColor3 = Color3.fromRGB(255, 255, 255),
+            ScaleType = Enum.ScaleType.Fit,
+            ZIndex = 10000,
+        }, Button)
+
+        Button.Activated:Connect(function()
+            set_open(not ScreenGui.Enabled)
+        end)
+
+        menu._mobile_toggle = {
+            Gui = MobileGui,
+            Button = Button,
+            Icon = Icon,
+        }
+
+        return Button
+    end
+
+    function menu:DisableMobileToggle()
+        if not menu._mobile_toggle then return end
+        pcall(function()
+            if menu._mobile_toggle.Gui then
+                menu._mobile_toggle.Gui:Destroy()
+            end
+        end)
+        menu._mobile_toggle = nil
     end
 
     uis.InputBegan:Connect(function(key)
@@ -170,13 +270,7 @@ function library.new(library_title, cfg_location)
         if key.KeyCode ~= Enum.KeyCode.RightShift then return end
 		--("Didnt return")
 
-		ScreenGui.Enabled = not ScreenGui.Enabled
-        menu.open = ScreenGui.Enabled
-
-        while ScreenGui.Enabled do
-            uis.MouseIconEnabled = true
-            rs.RenderStepped:Wait()
-        end
+		set_open(not ScreenGui.Enabled)
 	end)
 
     local ImageLabel = library:create("ImageButton", {
@@ -2237,8 +2331,34 @@ local display_entries = {}
 
     library:create("UIListLayout", {
         SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding   = UDim.new(0, 2),
+        Padding   = UDim.new(0, 4),
     }, DisplayContainer)
+
+    local function refresh_display_order()
+        local ids = table.create(0)
+        for id, entry in pairs(display_entries) do
+            ids[#ids + 1] = id
+        end
+
+        table.sort(ids, function(a, b)
+            local ea = display_entries[a]
+            local eb = display_entries[b]
+            local na = (ea and ea.Name) or tostring(a)
+            local nb = (eb and eb.Name) or tostring(b)
+            na, nb = tostring(na):lower(), tostring(nb):lower()
+            if na == nb then
+                return tostring(a) < tostring(b)
+            end
+            return na < nb
+        end)
+
+        for i = 1, #ids do
+            local entry = display_entries[ids[i]]
+            if entry and entry.Row then
+                entry.Row.LayoutOrder = i
+            end
+        end
+    end
 
     function menu:display_add(id, name, value)
         if display_entries[id] then return end
@@ -2273,6 +2393,7 @@ local display_entries = {}
         })
 
         display_entries[id] = { Row = Row, Label = Label, Name = name }
+        refresh_display_order()
     end
 
     function menu:display_remove(id)
@@ -2288,6 +2409,7 @@ local display_entries = {}
         end)
 
         display_entries[id] = nil
+        refresh_display_order()
     end
 
     function menu:display_update(id, value)
