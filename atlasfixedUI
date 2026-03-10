@@ -2401,8 +2401,13 @@ local display_entries = {}
         local Row   = display_entries[id].Row
         local Label = display_entries[id].Label
 
+        pcall(function()
+            Row.LayoutOrder = 1000000000
+        end)
+
         library:tween(Row,   TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { BackgroundTransparency = 1 })
         library:tween(Label, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { TextTransparency = 1 })
+        library:tween(Row,   TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Size = UDim2.new(1, 0, 0, 0) })
 
         task.delay(0.15, function()
             Row:Destroy()
