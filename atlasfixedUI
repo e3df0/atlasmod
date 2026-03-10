@@ -2227,11 +2227,14 @@ local display_entries = {}
     DisplayGui.Parent = cloneref(game:GetService("CoreGui"))
 
     local DisplayContainer = library:create("Frame", {
-        Name                   = "DisplayContainer",
-        BackgroundTransparency = 1,
-        Position               = UDim2.new(0, 6, 0, 6),
-        Size                   = UDim2.new(0, 160, 1, 0),
-    }, DisplayGui)
+    Name = "DisplayContainer",
+    BackgroundTransparency = 1,
+
+    AnchorPoint = Vector2.new(1, 0),
+    Position = UDim2.new(1, -6, 0, 6),
+
+    Size = UDim2.new(0, 220, 1, 0),
+}, DisplayGui)
 
     library:create("UIListLayout", {
         SortOrder = Enum.SortOrder.LayoutOrder,
