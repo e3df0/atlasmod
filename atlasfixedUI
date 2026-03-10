@@ -2231,9 +2231,8 @@ local display_entries = {}
     BackgroundTransparency = 1,
 
     AnchorPoint = Vector2.new(1, 0),
-    Position = UDim2.new(1, -18, 0, 18),
-
-    Size = UDim2.new(0, 660, 1, 0),
+    Position = UDim2.new(1, -7.5, 0, 7.5),
+    Size = UDim2.new(0, 275, 1, 0),
 }, DisplayGui)
 
     library:create("UIListLayout", {
@@ -2247,23 +2246,23 @@ local display_entries = {}
         local Row = library:create("Frame", {
             BackgroundColor3    = Color3.fromRGB(10, 10, 10),
             BorderColor3        = Color3.fromRGB(30, 30, 30),
-            Size = UDim2.new(1, 0, 0, 72),
+            Size = UDim2.new(1, 0, 0, 30),
             BackgroundTransparency = 1,
         }, DisplayContainer)
 
         library:create("Frame", {
             BackgroundColor3 = Color3.fromRGB(84, 101, 255),
             BorderSizePixel  = 0,
-            Size = UDim2.new(0, 6, 1, 0),
+            Size = UDim2.new(0, 2.5, 1, 0),
         }, Row)
 
         local Label = library:create("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, 18, 0, 0),
-            Size = UDim2.new(1, -30, 1, 0),
+            Position = UDim2.new(0, 7.5, 0, 0),
+            Size = UDim2.new(1, -12.5, 1, 0),
             Font        = Enum.Font.Ubuntu,
             TextColor3  = Color3.fromRGB(255, 255, 255),
-            TextSize    = 30,
+            TextSize = 16.25,
             TextXAlignment = Enum.TextXAlignment.Left,
             RichText    = true,
             Text        = value and (name .. " <font color='#808080'>" .. tostring(value) .. "</font>") or name,
