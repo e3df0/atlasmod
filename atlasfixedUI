@@ -2215,6 +2215,85 @@ local notif_queue   = {}
         end)
     end
 
+local display_entries = {}
+
+    local DisplayGui = library:create("ScreenGui", {
+        Name         = "DisplayGui",
+        ResetOnSpawn = false,
+        ZIndexBehavior = Enum.ZIndexBehavior.Global,
+        IgnoreGuiInset = true,
+    })
+    if syn then syn.protect_gui(DisplayGui) end
+    DisplayGui.Parent = cloneref(game:GetService("CoreGui"))
+
+    local DisplayContainer = library:create("Frame", {
+        Name                   = "DisplayContainer",
+        BackgroundTransparency = 1,
+        Position               = UDim2.new(0, 6, 0, 6),
+        Size                   = UDim2.new(0, 160, 1, 0),
+    }, DisplayGui)
+
+    library:create("UIListLayout", {
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding   = UDim.new(0, 2),
+    }, DisplayContainer)
+
+    function menu:display_add(id, name, value)
+        if display_entries[id] then return end
+
+        local Row = library:create("Frame", {
+            BackgroundColor3    = Color3.fromRGB(10, 10, 10),
+            BorderColor3        = Color3.fromRGB(30, 30, 30),
+            Size                = UDim2.new(1, 0, 0, 18),
+            BackgroundTransparency = 1,
+        }, DisplayContainer)
+
+        library:create("Frame", {
+            BackgroundColor3 = Color3.fromRGB(84, 101, 255),
+            BorderSizePixel  = 0,
+            Size             = UDim2.new(0, 2, 1, 0),
+        }, Row)
+
+        local Label = library:create("TextLabel", {
+            BackgroundTransparency = 1,
+            Position    = UDim2.new(0, 6, 0, 0),
+            Size        = UDim2.new(1, -6, 1, 0),
+            Font        = Enum.Font.Ubuntu,
+            TextColor3  = Color3.fromRGB(255, 255, 255),
+            TextSize    = 13,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            RichText    = true,
+            Text        = value and (name .. " <font color='#808080'>" .. tostring(value) .. "</font>") or name,
+        }, Row)
+
+        library:tween(Row, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0
+        })
+
+        display_entries[id] = { Row = Row, Label = Label, Name = name }
+    end
+
+    function menu:display_remove(id)
+        if not display_entries[id] then return end
+        local Row   = display_entries[id].Row
+        local Label = display_entries[id].Label
+
+        library:tween(Row,   TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { BackgroundTransparency = 1 })
+        library:tween(Label, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { TextTransparency = 1 })
+
+        task.delay(0.15, function()
+            Row:Destroy()
+        end)
+
+        display_entries[id] = nil
+    end
+
+    function menu:display_update(id, value)
+        if not display_entries[id] then return end
+        local entry = display_entries[id]
+        entry.Label.Text = value and (entry.Name .. " <font color='#808080'>" .. tostring(value) .. "</font>") or entry.Name
+    end
+
     return menu
 end
 
