@@ -1978,43 +1978,47 @@ function library.new(library_title, cfg_location)
                             mouse_in = false
                         end)
 
-                        SliderButton.MouseButton1Down:Connect(function()
-                            SliderFrame.Size = UDim2.new(0, math.clamp(mouse.X - SliderFrame.AbsolutePosition.X, 0, 260), 1, 0)
-                            local val = math.floor((((max - min) / 260) * SliderFrame.AbsoluteSize.X) + min)
-                            if val ~= value.Slider then
-                                SliderValue.Text = val
-                                value.Slider = val
-                                do_callback()
-                            end
-                            is_sliding = true
-                            move_connection = mouse.Move:Connect(function()
-                                SliderFrame.Size = UDim2.new(0, math.clamp(mouse.X - SliderFrame.AbsolutePosition.X, 0, 260), 1, 0)
-                                local val = math.floor((((max - min) / 260) * SliderFrame.AbsoluteSize.X) + min)
-                                if val ~= value.Slider then
-                                    SliderValue.Text = val
-                                    value.Slider = val
-                                    do_callback()
-                                end
-                            end)
-                            release_connection = uis.InputEnded:Connect(function(Mouse)
-                                if Mouse.UserInputType == Enum.UserInputType.MouseButton1 then
-                                    SliderFrame.Size = UDim2.new(0, math.clamp(mouse.X - SliderFrame.AbsolutePosition.X, 0, 260), 1, 0)
-                                    local val = math.floor((((max - min) / 260) * SliderFrame.AbsoluteSize.X) + min)
-                                    if val ~= value.Slider then
-                                        SliderValue.Text = val
-                                        value.Slider = val
-                                        do_callback()
-                                    end
-                                    is_sliding = false
-                                    if not mouse_in then
-                                        library:tween(SliderText, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Color3.fromRGB(150, 150, 150)})
-                                        library:tween(SliderValue, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Color3.fromRGB(150, 150, 150)})
-                                    end
-                                    move_connection:Disconnect()
-                                    release_connection:Disconnect()
-                                end
-                            end)
-                        end)
+                        local function updateSlider(inputX)
+    local relX = math.clamp(inputX - SliderButton.AbsolutePosition.X, 0, 260)
+    SliderFrame.Size = UDim2.new(0, relX, 1, 0)
+    local val = math.floor((((max - min) / 260) * relX) + min)
+    if val ~= value.Slider then
+        SliderValue.Text = val
+        value.Slider = val
+        do_callback()
+    end
+end
+
+SliderButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 
+    or input.UserInputType == Enum.UserInputType.Touch then
+        is_sliding = true
+        updateSlider(input.Position.X)
+
+        local moveConn, endConn
+        moveConn = uis.InputChanged:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseMovement 
+            or i.UserInputType == Enum.UserInputType.Touch then
+                if is_sliding then
+                    updateSlider(i.Position.X)
+                end
+            end
+        end)
+
+        endConn = uis.InputEnded:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 
+            or i.UserInputType == Enum.UserInputType.Touch then
+                is_sliding = false
+                if not mouse_in then
+                    library:tween(SliderText, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Color3.fromRGB(150, 150, 150)})
+                    library:tween(SliderValue, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Color3.fromRGB(150, 150, 150)})
+                end
+                moveConn:Disconnect()
+                endConn:Disconnect()
+            end
+        end)
+    end
+end)
 
                         function element:set_value(new_value, cb)
                             value = new_value and new_value or value
